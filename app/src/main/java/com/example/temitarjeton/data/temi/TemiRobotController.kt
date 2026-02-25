@@ -36,7 +36,8 @@ class TemiRobotController :
     Robot.TtsListener,
     OnUserInteractionChangedListener,
     OnButtonStatusChangedListener,
-    OnGoToLocationStatusChangedListener {
+    OnGoToLocationStatusChangedListener,
+    OnRequestPermissionResultListener {
 
     private val robot: Robot = Robot.getInstance()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
