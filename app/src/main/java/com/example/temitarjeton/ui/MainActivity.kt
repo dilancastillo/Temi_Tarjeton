@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
             // ---- Inactividad (15s) ----
             var lastInteractionMs by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
             fun markInteraction() {
-                lastInteractionMs = SystemClock.elapsedRealtime()
+                lastInteractionMs = android.os.SystemClock.elapsedRealtime()
             }
 
             // Seguimos el route actual para decidir qué hacer con eventos del robot.
@@ -104,13 +104,11 @@ class MainActivity : ComponentActivity() {
             // 3) Timer de inactividad: si estás en tarjetón y pasan 15s sin tocar, vuelve a atracción.
             LaunchedEffect(Unit) {
                 while (true) {
-                    delay(500)
-                    val elapsed = SystemClock.elapsedRealtime() - lastInteractionMs
+                    kotlinx.coroutines.delay(250)
+                    val elapsed = android.os.SystemClock.elapsedRealtime() - lastInteractionMs
 
-                    // Solo aplica cuando el usuario está “esperando” en el tarjetón.
-                    if (currentRoute == Routes.Ballot && elapsed >= 15_000L) {
-                        vm.staffReset() // limpia popup/estado
-                        // Volvemos sin duplicar pantallas: preferimos popBackStack.
+                    if (currentRoute == Routes.Ballot && elapsed >= 3_000L) {
+
                         val popped = nav.popBackStack(Routes.Attract, inclusive = false)
                         if (!popped) {
                             nav.navigate(Routes.Attract) { launchSingleTop = true }
@@ -153,6 +151,7 @@ class MainActivity : ComponentActivity() {
                 },
                 ballot = {
                     val state = vm.state.collectAsState().value as BallotUiState.Ready
+
                     BallotScreen(
                         state = state,
                         onNumberPressed = {
