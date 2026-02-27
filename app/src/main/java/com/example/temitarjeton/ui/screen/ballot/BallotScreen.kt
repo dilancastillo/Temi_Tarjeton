@@ -1,256 +1,217 @@
 package com.example.temitarjeton.ui.screen.ballot
 
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.temitarjeton.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val WINNING_NUMBER = 5
-
-private val Teal = Color(0xFF0A5A66)
-private val Green = Color(0xFF74B62E)
-private val LightBg = Color(0xFFF7FAFB)
+private val RedX = Color(0xFFFF0000)
 
 @Composable
 fun BallotScreen(
     state: BallotUiState.Ready,
     onNumberPressed: (Int) -> Unit,
     onDismissLoseDialog: () -> Unit,
-    onAnyInteraction: () -> Unit = {},
     onStaffReset: () -> Unit,
 ) {
-
-    val anyTouchModifier = Modifier.pointerInput(Unit) {
-        awaitEachGesture {
-            awaitFirstDown(requireUnconsumed = false)
-            onAnyInteraction()
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LightBg)
-            .then(anyTouchModifier)
-            .padding(16.dp)
+            .background(Color.White)
+            .padding(18.dp)
     ) {
-        Row(
+        Text(
+            text = "TARJETÓN",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Black,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.30f),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(18.dp),
-                tonalElevation = 2.dp
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.senado_vota_asi),
-                    contentDescription = "Al Senado vota así",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .weight(1.25f)
-                    .fillMaxHeight(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    shape = RoundedCornerShape(18.dp),
-                    tonalElevation = 2.dp
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.marca_logo),
-                        contentDescription = "Marca el logo",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = { onStaffReset() })
                 }
-
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    shape = RoundedCornerShape(18.dp),
-                    tonalElevation = 2.dp
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.marca_numero),
-                        contentDescription = "Marca el número",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-        }
+        )
 
         Spacer(Modifier.height(12.dp))
 
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.70f),
-            shape = RoundedCornerShape(18.dp),
-            tonalElevation = 2.dp
-        ) {
-            Row(
+        Row(Modifier.fillMaxSize()) {
+            LeftPartyPanel(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .border(2.dp, Teal, RoundedCornerShape(18.dp))
-                    .background(Color.White)
-                    .padding(14.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                LeftTicketPanel(
-                    modifier = Modifier
-                        .weight(0.30f)
-                        .fillMaxHeight()
-                )
-                NumbersTicketGrid(
-                    modifier = Modifier
-                        .weight(0.70f)
-                        .fillMaxHeight(),
-                    enabled = !state.showLoseDialog,
-                    onPress = { n ->
-                        onAnyInteraction()
-                        onNumberPressed(n)
-                    }
-                )
-            }
-        }
-    }
+                    .weight(1.35f)
+                    .fillMaxHeight()
+            )
 
-    if (state.showLoseDialog) {
-        LoseDialogLarge(
-            message = state.loseMessage.orEmpty(),
-            onDismiss = onDismissLoseDialog
-        )
-    }
-}
+            Spacer(Modifier.width(18.dp))
 
-@Composable
-private fun LeftTicketPanel(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .border(2.dp, Color(0xFF111111), RoundedCornerShape(14.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "ALIANZA POR COLOMBIA",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Black,
-            color = Color(0xFF111111)
-        )
-
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            tonalElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
+            RightNumbersPanel(
                 modifier = Modifier
-                    .background(Color(0xFF0E6B3D))
-                    .padding(10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.logo_alianza_verde),
-                    contentDescription = "Logo Alianza Verde",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
+                    .weight(1f)
+                    .fillMaxHeight(),
+                enabled = !state.showLoseDialog,
+                onPress = onNumberPressed
+            )
         }
 
+        Spacer(Modifier.height(10.dp))
         Text(
             text = "PREFERENTE",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Black,
-            color = Color(0xFF111111),
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
+
+    if (state.showLoseDialog) {
+        AlertDialog(
+            onDismissRequest = onDismissLoseDialog,
+            title = { Text("Perdiste 😅", fontSize = 28.sp, fontWeight = FontWeight.Black) },
+            text = { Text(state.loseMessage.orEmpty(), fontSize = 20.sp) },
+            confirmButton = {
+                Button(onClick = onDismissLoseDialog) { Text("Entendido", fontSize = 20.sp) }
+            }
+        )
+    }
 }
 
 @Composable
-private fun NumbersTicketGrid(
+private fun LeftPartyPanel(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+            .padding(18.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "PARTIDO ALIANZA VERDE",
+            fontWeight = FontWeight.Black,
+            fontSize = 18.sp
+        )
+
+        // Logo + X roja en loop (sin salirse)
+        val logoShape = RoundedCornerShape(10.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(logoShape)
+                .background(Color(0xFF0E6B3D))
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_alianza_verde),
+                contentDescription = "Logo Alianza Verde",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            // X en loop dibujándose (siempre animando)
+            LoopingRedX(
+                strokeWidth = 10.dp,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        Text(
+            text = "Selecciona el número ganador",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+private fun RightNumbersPanel(
     modifier: Modifier,
     enabled: Boolean,
     onPress: (Int) -> Unit
 ) {
+
     val numbers = remember { (1..40).toList() }
+
+    var markingNumber by remember { mutableStateOf<Int?>(null) }
+    var isMarking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    val markProgress = remember { androidx.compose.animation.core.Animatable(0f) }
 
     Column(
         modifier = modifier
-            .border(2.dp, Color(0xFF111111), RoundedCornerShape(14.dp))
-            .padding(10.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+            .padding(18.dp)
     ) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(8), // 8 columnas x 5 filas = 40
+            columns = GridCells.Fixed(8),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(numbers, key = { it }) { n ->
-                TicketNumberCell(
+                val isWinning = (n == WINNING_NUMBER)
+                val showXHere = (markingNumber == n) && isMarking
+
+                NumberButton(
                     n = n,
-                    enabled = enabled,
-                    isWinning = (n == WINNING_NUMBER),
-                    onPress = onPress,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp)
+                    enabled = enabled && !isMarking, // bloquea taps solo durante la animación
+                    isWinning = isWinning,
+                    showMarkX = showXHere,
+                    markProgress = markProgress.value,
+                    onPress = { selected ->
+                        if (!enabled || isMarking) return@NumberButton
+
+                        isMarking = true
+                        markingNumber = selected
+
+                        scope.launch {
+                            markProgress.snapTo(0f)
+                            markProgress.animateTo(
+                                targetValue = 1f,
+                                animationSpec = tween(
+                                    durationMillis = 780,
+                                    easing = LinearEasing
+                                )
+                            )
+
+                            delay(80)
+
+                            isMarking = false
+                            markingNumber = null
+
+                            onPress(selected)
+                        }
+                    }
                 )
             }
         }
@@ -258,108 +219,125 @@ private fun NumbersTicketGrid(
 }
 
 @Composable
-private fun TicketNumberCell(
+private fun NumberButton(
     n: Int,
     enabled: Boolean,
     isWinning: Boolean,
+    showMarkX: Boolean,
+    markProgress: Float,
     onPress: (Int) -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(16.dp)
 
-    // Pulso arcade para el ganador
     val scale = if (isWinning) {
         val inf = rememberInfiniteTransition(label = "pulse")
         inf.animateFloat(
             initialValue = 1.0f,
-            targetValue = 1.14f,
+            targetValue = 1.12f,
             animationSpec = infiniteRepeatable(
-                animation = tween(380),
+                animation = tween(420),
                 repeatMode = RepeatMode.Reverse
             ),
             label = "pulseScale"
         ).value
     } else 1.0f
 
-    val borderColor = when {
-        isWinning -> Green
-        else -> Color(0xFFB9C2C6)
-    }
-
-    val bgColor = when {
-        !enabled -> Color(0xFFE6E6E6)
-        isWinning -> Color(0xFFEAF7DA)
-        else -> Color(0xFFF3F5F6)
-    }
-
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .height(78.dp)
             .scale(scale)
-            .border(3.dp, borderColor, shape)
-            .background(bgColor, shape)
-            .pointerInput(enabled) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    if (enabled) onPress(n)
-                    // no consumimos el evento (down) para mantener fluidez
-                }
-            },
+            .clip(shape)
+            .border(3.dp, Color.Black, shape)
+            .background(if (enabled) Color(0xFFEFEFEF) else Color(0xFFDADADA), shape)
+            .clickable(enabled = enabled) { onPress(n) },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = n.toString(),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Black,
-            color = Teal
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Black
         )
+
+        if (showMarkX) {
+            DrawRedX(
+                progress = markProgress,
+                strokeWidth = 8.dp,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
 
 @Composable
-private fun LoseDialogLarge(
-    message: String,
-    onDismiss: () -> Unit
+private fun DrawRedX(
+    progress: Float,
+    strokeWidth: Dp,
+    modifier: Modifier = Modifier
 ) {
-    val scroll = rememberScrollState()
+    Canvas(modifier = modifier) {
+        val pad = size.minDimension * 0.18f
 
-    AlertDialog(
-        modifier = Modifier.fillMaxWidth(0.92f),
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Perdiste 😅",
-                fontSize = 34.sp,
-                lineHeight = 38.sp,
-                fontWeight = FontWeight.Black
+        val a1 = Offset(pad, pad)
+        val b1 = Offset(size.width - pad, size.height - pad)
+
+        val a2 = Offset(size.width - pad, pad)
+        val b2 = Offset(pad, size.height - pad)
+
+        val p1 = (progress / 0.5f).coerceIn(0f, 1f)
+        val p2 = ((progress - 0.5f) / 0.5f).coerceIn(0f, 1f)
+
+        if (p1 > 0f) {
+            drawLine(
+                color = RedX,
+                start = a1,
+                end = lerp(a1, b1, p1),
+                strokeWidth = strokeWidth.toPx(),
+                cap = StrokeCap.Round
             )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .heightIn(min = 140.dp, max = 260.dp)
-                    .verticalScroll(scroll)
-            ) {
-                Text(
-                    text = message,
-                    fontSize = 24.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Start
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier.height(64.dp),
-                contentPadding = PaddingValues(horizontal = 28.dp, vertical = 16.dp)
-            ) {
-                Text(
-                    text = "Entendido",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
+        if (p2 > 0f) {
+            drawLine(
+                color = RedX,
+                start = a2,
+                end = lerp(a2, b2, p2),
+                strokeWidth = strokeWidth.toPx(),
+                cap = StrokeCap.Round
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoopingRedX(
+    strokeWidth: Dp,
+    modifier: Modifier = Modifier
+) {
+    val inf = rememberInfiniteTransition(label = "loopX")
+
+    val progress by inf.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1300
+                0f at 0
+                1f at 900
+                1f at 1150 // pausa
+                0f at 1300 // reinicio (snap)
+            }
+        ),
+        label = "loopProgress"
+    )
+
+    DrawRedX(
+        progress = progress,
+        strokeWidth = strokeWidth,
+        modifier = modifier
     )
 }
+
+private fun lerp(a: Offset, b: Offset, t: Float): Offset =
+    Offset(
+        x = a.x + (b.x - a.x) * t,
+        y = a.y + (b.y - a.y) * t
+    )
