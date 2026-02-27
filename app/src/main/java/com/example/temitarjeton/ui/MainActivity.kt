@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
                     kotlinx.coroutines.delay(250)
                     val elapsed = android.os.SystemClock.elapsedRealtime() - lastInteractionMs
 
-                    if (currentRoute == Routes.Ballot && elapsed >= 3_000L) {
+                    if (currentRoute == Routes.Ballot && elapsed >= 6_000L) {
 
                         val popped = nav.popBackStack(Routes.Attract, inclusive = false)
                         if (!popped) {
@@ -135,13 +135,11 @@ class MainActivity : ComponentActivity() {
                             nav.navigate(Routes.Ballot) { launchSingleTop = true }
                         },
                         onEveryThreeLoops = {
-                            // Requisito #14: cada 3 loops -> parar movimiento + TTS.
                             temi.stopPatrol()
                             temi.speakAndWait(
                                 "¡Hola! Toca la pantalla para jugar. O presiona el botón seguir."
                             )
 
-                            // Si nadie interactuó (seguimos en atracción), retomamos patrulla.
                             if (currentRoute == Routes.Attract) {
                                 val route = temi.buildPatrolRoute(prefix = "ubicacion", maxLocations = 3)
                                 temi.startPatrol(route)

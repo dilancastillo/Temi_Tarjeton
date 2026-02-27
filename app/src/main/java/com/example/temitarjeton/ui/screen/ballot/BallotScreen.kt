@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 private const val WINNING_NUMBER = 5
 private val RedX = Color(0xFFFF0000)
 
+private val LightBg = Color(0xFFF7FAFB)
+
 @Composable
 fun BallotScreen(
     state: BallotUiState.Ready,
@@ -51,46 +53,51 @@ fun BallotScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(18.dp)
+            .background(LightBg)
+            .padding(16.dp)
     ) {
-        Text(
-            text = "TARJETÓN",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Black,
+
+        // ===== FILA 1 (30%) =====
+        HeaderRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { onStaffReset() })
-                }
+                .weight(0.30f),
+            onStaffReset = onStaffReset
         )
 
         Spacer(Modifier.height(12.dp))
 
-        Row(Modifier.fillMaxSize()) {
-            LeftPartyPanel(
+        // ===== FILA 2 (70%) =====
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.70f),
+            shape = RoundedCornerShape(18.dp),
+            tonalElevation = 2.dp
+        ) {
+            Row(
                 modifier = Modifier
-                    .weight(1.35f)
-                    .fillMaxHeight()
-            )
+                    .fillMaxSize()
+                    .border(2.dp, Color.Black, RoundedCornerShape(18.dp))
+                    .background(Color.White)
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                LeftPartyPanel(
+                    modifier = Modifier
+                        .weight(0.33f)
+                        .fillMaxHeight()
+                )
 
-            Spacer(Modifier.width(18.dp))
-
-            RightNumbersPanel(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                enabled = !state.showLoseDialog,
-                onPress = onNumberPressed
-            )
+                RightNumbersPanel(
+                    modifier = Modifier
+                        .weight(0.67f)
+                        .fillMaxHeight(),
+                    enabled = !state.showLoseDialog,
+                    onPress = onNumberPressed
+                )
+            }
         }
-
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = "PREFERENTE",
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
     }
 
     if (state.showLoseDialog) {
@@ -106,11 +113,91 @@ fun BallotScreen(
 }
 
 @Composable
+private fun HeaderRow(
+    modifier: Modifier,
+    onStaffReset: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Columna 1
+        Surface(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            shape = RoundedCornerShape(18.dp),
+            tonalElevation = 2.dp
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onLongPress = { onStaffReset() })
+                    }
+                    .padding(10.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.senado_vota_asi),
+                    contentDescription = "Al Senado vota así",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .weight(1.25f)
+                .fillMaxHeight(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(18.dp),
+                tonalElevation = 2.dp
+            ) {
+                Box(Modifier.fillMaxSize().padding(10.dp)) {
+                    Image(
+                        painter = painterResource(R.drawable.marca_logo),
+                        contentDescription = "Marca el logo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(18.dp),
+                tonalElevation = 2.dp
+            ) {
+                Box(Modifier.fillMaxSize().padding(10.dp)) {
+                    Image(
+                        painter = painterResource(R.drawable.marca_numero),
+                        contentDescription = "Marca el número",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun LeftPartyPanel(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-            .padding(18.dp),
+            .padding(14.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -119,7 +206,6 @@ private fun LeftPartyPanel(modifier: Modifier = Modifier) {
             fontSize = 18.sp
         )
 
-        // Logo + X roja en loop (sin salirse)
         val logoShape = RoundedCornerShape(10.dp)
         Box(
             modifier = Modifier
@@ -137,7 +223,6 @@ private fun LeftPartyPanel(modifier: Modifier = Modifier) {
                 contentScale = ContentScale.Fit
             )
 
-            // X en loop dibujándose (siempre animando)
             LoopingRedX(
                 strokeWidth = 10.dp,
                 modifier = Modifier.fillMaxSize()
@@ -158,7 +243,6 @@ private fun RightNumbersPanel(
     enabled: Boolean,
     onPress: (Int) -> Unit
 ) {
-
     val numbers = remember { (1..40).toList() }
 
     var markingNumber by remember { mutableStateOf<Int?>(null) }
@@ -170,7 +254,7 @@ private fun RightNumbersPanel(
     Column(
         modifier = modifier
             .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-            .padding(18.dp)
+            .padding(14.dp)
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(8),
@@ -184,7 +268,7 @@ private fun RightNumbersPanel(
 
                 NumberButton(
                     n = n,
-                    enabled = enabled && !isMarking, // bloquea taps solo durante la animación
+                    enabled = enabled && !isMarking,
                     isWinning = isWinning,
                     showMarkX = showXHere,
                     markProgress = markProgress.value,
