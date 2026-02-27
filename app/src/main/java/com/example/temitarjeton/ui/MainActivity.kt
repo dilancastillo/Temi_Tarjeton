@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.compose.rememberNavController
 import com.example.temitarjeton.data.audio.SfxPlayer
 import com.example.temitarjeton.data.temi.TemiRobotController
@@ -60,11 +59,11 @@ class MainActivity : ComponentActivity() {
 
             // Seguimos el route actual para decidir qué hacer con eventos del robot.
             var currentRoute by remember { mutableStateOf(Routes.Attract) }
-            LaunchedEffect(Unit) {
-                snapshotFlow { nav.currentBackStackEntry?.destination?.route }
-                    .collect { route ->
-                        if (!route.isNullOrBlank()) currentRoute = route
-                    }
+
+            LaunchedEffect(nav) {
+                nav.currentBackStackEntryFlow.collect { entry ->
+                    currentRoute = entry.destination.route ?: Routes.Attract
+                }
             }
 
             // Limpieza
@@ -94,10 +93,8 @@ class MainActivity : ComponentActivity() {
             // 2) Interacción física con Temi (touch / botón interacción/seguir)
             LaunchedEffect(Unit) {
                 temi.interactionEvents.collect {
-                    markInteraction()
-
-                    // Si estamos en “atracción”, esto significa: alguien tocó el robot o pulsó “seguir”.
                     if (currentRoute == Routes.Attract) {
+                        markInteraction()
                         temi.stopPatrol()
                         nav.navigate(Routes.Ballot) { launchSingleTop = true }
                     }
