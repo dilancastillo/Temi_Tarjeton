@@ -13,12 +13,14 @@ import androidx.media3.ui.PlayerView
 
 @Composable
 fun VideoScreen(
-    videoUriProvider: () -> android.net.Uri,
+    videoUriProvider: () -> Uri,
     onVideoEnded: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val uri = remember { videoUriProvider() }
+
+    var ended by remember { mutableStateOf(false) }
 
     val exoPlayer = remember(context, uri) {
         ExoPlayer.Builder(context).build().apply {
@@ -26,6 +28,10 @@ fun VideoScreen(
             prepare()
             playWhenReady = true
         }
+    }
+
+    LaunchedEffect(ended) {
+        if (ended) onVideoEnded()
     }
 
     DisposableEffect(exoPlayer) {

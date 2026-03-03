@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
                     kotlinx.coroutines.delay(250)
                     val elapsed = android.os.SystemClock.elapsedRealtime() - lastInteractionMs
 
-                    if (currentRoute == Routes.Ballot && elapsed >= 6_000L) {
+                    if (currentRoute == Routes.Ballot && elapsed >= 10_000L) {
 
                         val popped = nav.popBackStack(Routes.Attract, inclusive = false)
                         if (!popped) {
@@ -170,9 +170,12 @@ class MainActivity : ComponentActivity() {
                     VideoScreen(
                         videoUriProvider = { videoProvider.candidateVideoUri() },
                         onVideoEnded = {
-                            // Sin pantalla final: vuelve al tarjetón.
-                            markInteraction() // reinicia el conteo de 15s al terminar el video
-                            nav.popBackStack(Routes.Ballot, inclusive = false)
+                            markInteraction() // reinicia el conteo de 10s al terminar el video
+                            val popped = nav.popBackStack()
+
+                            if (!popped) {
+                                nav.navigate(Routes.Ballot) { launchSingleTop = true }
+                            }
                         }
                     )
                 }
